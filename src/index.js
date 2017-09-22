@@ -1,3 +1,7 @@
+const {execute, subscribe} = require('graphql');
+const {createServer} = require('http');
+const {SubscriptionServer} = require('subscriptions-transport-ws');
+
 const express = require('express');
 
 // This package automatically parses JSON requests.
@@ -37,15 +41,22 @@ const start = async () => {
   };
 
   app.use('/graphql', bodyParser.json(), graphqlExpress(buildOptions));
+
+  const PORT = 3000;
+	const server = createServer(app);
   app.use('/graphiql', graphiqlExpress({
     endpointURL: '/graphql',
     passHeader: `'Authorization': 'bearer token-yuri.vyatkin@waiorapacific.com'`,
+    subscriptionsEndpoint: `ws://localhost:${PORT}/subscriptions`,
   }));
 
-  const PORT = 3000;
-  app.listen(PORT, () => {
-    console.log(`Hackernews GraphQL server running on port ${PORT}.`)
-  });
+	server.listen(PORT, () => {
+		SubscriptionServer.create(
+			{execute, subscribe, schema},
+			{server, path: '/subscriptions'},
+		);
+		console.log(`Hackernews GraphQL server running on port ${PORT}.`)
+	});
 };
 
 // 5

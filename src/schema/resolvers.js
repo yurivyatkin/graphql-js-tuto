@@ -2,6 +2,8 @@ const {ObjectID} = require('mongodb');
 
 const {URL} = require('url');
 
+const pubsub = require('../pubsub');
+
 class ValidationError extends Error {
   constructor(message, field) {
     super(message);
@@ -29,7 +31,11 @@ module.exports = {
       assertValidLink(data);
       const newLink = Object.assign({postedById: user && user._id}, data);
       const response = await Links.insert(newLink); // 3
-      return Object.assign({id: response.insertedIds[0]}, newLink); // 4
+
+      newLink.id = response.insertedIds[0]
+      pubsub.publish('Link', {Link: {mutation: 'CREATED', node: newLink}});
+
+      return newLink; // 4
     },
     createUser: async (root, data, {mongo: {Users}}) => {
     // You need to convert the given arguments into the format for the
@@ -57,6 +63,12 @@ module.exports = {
       };
       const response = await Votes.insert(newVote);
       return Object.assign({id: response.insertedIds[0]}, newVote);
+    },
+  },
+
+  Subscription: {
+    Link: {
+      subscribe: () => pubsub.asyncIterator('Link'),
     },
   },
 
