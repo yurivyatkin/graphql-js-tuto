@@ -31,6 +31,7 @@ const start = async () => {
   app.use('/graphql', bodyParser.json(), graphqlExpress(buildOptions));
   app.use('/graphiql', graphiqlExpress({
     endpointURL: '/graphql',
+    passHeader: `'Authorization': 'bearer token-yuri.vyatkin@waiorapacific.com'`,
   }));
 
   const PORT = 3000;
