@@ -28,7 +28,7 @@ module.exports = {
 
   Mutation: {
     createLink: async (root, data, {mongo: {Links}, user}) => {
-      assertValidLink(data);
+      // assertValidLink(data);
       const newLink = Object.assign({postedById: user && user._id}, data);
       const response = await Links.insert(newLink); // 3
 
